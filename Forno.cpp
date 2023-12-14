@@ -1,55 +1,32 @@
-#include "forno.h"
+#include "Forno.h"
 
 
 // Costruttore
 Forno::Forno(double tassoRiscaldamento, double tassoRaffreddamento)
-    : temperatura(0.0), tassoRiscaldamento(tassoRiscaldamento), tassoRaffreddamento(tassoRaffreddamento) {
-        stato = SPENTO;
-    }
+    , _tassoRiscaldamento(tassoRiscaldamento)
+    , _tassoRaffreddamento(tassoRaffreddamento) {}
 
-
-void Forno::aggiorna(){
-
-    if (stato == ACCESO)
-    {
-        
+void Forno::aggiorna() {
+    if (stato == ACCESO) {
         // Simulo un aumento di temperatura basato su una funzione logistica. Il riscaldamento è legato alla potenza impostata del forno.
-        riscaldamento = 100.0 * potenzaPercentuale * (1 - exp(-tassoRiscaldamento * millis() / 1000.0));
+        _riscaldamento = 100.0 * _potenzaPercentuale * (1 - exp(-_tassoRiscaldamento * millis() / 1000.0));
     }
-    
-
     // Simulo il raffreddamento con una funzione logistica. Il raffreddamento è legato alla temperatura. Maggiore temperatura significa maggior raffreddamento
-    raffreddamento = 100.0 * exp(-tassoRaffreddamento * millis() / 1000.0)* (temperatura / 100.0);
-    
-    
-    temperatura = riscaldamento - raffreddamento;
+    _raffreddamento = 100.0 * exp(-_tassoRaffreddamento * millis() / 1000.0) * (_temperatura / 100.0);
+    _temperatura = _riscaldamento - _raffreddamento;
 
     //clippo valori di uscita tra 20°C e 300°C
-    if (temperatura > 300.0) {
-        temperatura = 300.0;
-    }
-
-    if (temperatura < 20.0) {
-        temperatura = 20.0;
-    }
+    _temperatura = (_temperatura > _max_temp) ? _max_temp : _temperatura;
+    _temperatura = (_temperatura < _min_temp) ? _min_temp : _temperatura;
 }
 
-void Forno::impostaStato(statoForno nuovoStato){
-    stato = nuovoStato;
+void Forno::accendi() { _stato = ACCESO; }
+void Forno::spento() { _stato = SPENTO; }
+
+bool Forno::stato() { return _stato == ACCESO; }
+
+void Forno::impostaPotenzaPercentuale(double potenza) {
+    _potenzaPercentuale = fmin(fmax(_potenza, 0.0), 100.0) / 100.0;
 }
 
-Forno::statoForno Forno::ottieniStato(){
-    return stato;
-}
-
-
-void Forno::impostaPotenzaPercentuale(double potenza){
-    // Clippo la potenza in modo che sia compresa tra 0 e 100
-    potenzaPercentuale = fmin(fmax(potenza, 0.0), 100.0) / 100.0;
-    
-}
-
-double Forno::ottieniTemperatura() {
-    // Funzione per ottenere la temperatura attuale del forno
-    return temperatura;
-}
+double Forno::temperatura() { return _temperatura; }

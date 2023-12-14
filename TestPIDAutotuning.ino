@@ -1,23 +1,14 @@
-#include "forno.h"
+#include "Forno.h"
 
-
-Forno mioForno (0.01,0.002);
+Forno forno(0.01, 0.002);
 
 //   ******* SETUP *******
-void setup()
-{
-
+void setup() {
 
 }
 
 //   ******* LOOP *******
-void loop()
-{
-    mioForno.aggiorna();
-
-    double temperaturaAttuale = mioForno.ottieniTemperatura();
-
-    
-    Serial.println("La temperatura del forno è " + String(temperaturaAttuale) + " °C");
+void loop() {
+    forno.aggiorna();
+    Serial.println("La temperatura del forno è " + String(forno.temperatura()) + " °C");
 }
-
