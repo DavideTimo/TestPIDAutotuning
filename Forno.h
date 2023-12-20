@@ -13,13 +13,15 @@ La funzione aggiorna() si occupa di modificare la temperatura del forno.
 
 class Forno {
     //attenzione. La struttura dell'enum va dichiarata prima di dichiarare una variabile di questo tipo, altrimenti giustamente impazzisce.
-    public:
+
+
+    private:
+
         enum statoForno {
             ACCESO,
             SPENTO
         };
 
-    private:
         double temperatura;
         double potenzaPercentuale;  //potenza del forno settata (in futuro dinamicamente dal PID)
         double riscaldamento;       //variazione temperatura causata dall'azione di riscaldamento
