@@ -31,6 +31,17 @@ void loop()
 }
 
 
+
+
+/*
+Nel contesto di un temporizzatore, la funzione di gestione degli eventi 
+viene chiamata quando il timer scade. Passare un riferimento a un oggetto 
+MillisTimer come parametro fornisce alla funzione di gestione degli eventi 
+accesso all'oggetto timer stesso, consentendole di interagire con le sue 
+proprietà o di effettuare operazioni specifiche.
+es. mt.mt.setTimeout(2000, myTimerFunction); //  reimpostare un nuovo intervallo nel Timer
+*/
 void FcToHmi(MillisTimer &mt){
     Serial.println("La temperatura del forno è " + String(temperaturaAttuale) + " °C");
+    
 }
