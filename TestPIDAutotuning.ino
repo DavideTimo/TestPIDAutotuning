@@ -1,16 +1,64 @@
 #include "forno.h"
 #include "MillisTimer.h"
+#include "PID_v2.h"
+#include "PID_AutoTune_v0.h"
+
 
 MillisTimer TimerFcToHMI = MillisTimer(500);  //creo un Timer che dura mezzo secondo
 
 
+
+
+//creo oggetto forno
 Forno mioForno (0.01,0.002);
 
-double temperaturaAttuale;
+double kp = 2;
+double ki = 5;
+double kd = 1;
+double setpoint = 150.0;
+double PidOutput = 0;
+//creo oggetto PID
+PID_v2 mioPID(kp,ki,kd,PID::Direct);
+
+//variabili
+double temperaturaAttuale; //temperatura attuale del forno
+
+
+PID_ATune myPIDAtune(@temperaturaAttuale, @PidOutput);
+
 
 //   ******* SETUP *******
 void setup()
 {
+    mioPID.start(temperaturaAttuale, PidOutput, setpoint);  // input, current uotput, setpoint
+
+    /*
+    SetNoiseBand(double x); Questo parametro definisce la "banda di rumore" e rappresenta la massima variazione 
+    che può essere tollerata prima che l'algoritmo di autotuning consideri il sistema stabile. 
+    Se il segnale di ingresso varia meno della banda di rumore, viene considerato come rumore 
+    di misura e ignorato. Questo parametro aiuta a ridurre l'effetto del rumore sulla stima 
+    del modello del sistema.
+    */
+    myPIDAtune.SetNoiseBand(1);
+
+    /*
+    SetOutputStep(double x). Questo parametro specifica la dimensione del passo (step) che verrà utilizzato per rilevare 
+    la risposta in uscita del sistema durante l'autotuning. Un passo più grande può accelerare 
+    il processo di autotuning, ma potrebbe influenzare la stabilità del sistema. 
+    Un valore più piccolo può rendere l'autotuning più lento, ma può essere più preciso.
+    */
+    myPIDAtune.SetOutputStep(1);
+
+    /*
+    Questo parametro definisce il periodo di tempo (in secondi) su cui l'algoritmo di autotuning 
+    guarda indietro per analizzare la risposta in uscita del sistema. Un periodo di guardia più 
+    lungo può catturare meglio le dinamiche a lungo termine del sistema, ma potrebbe rendere 
+    l'autotuning più lento.
+    */
+    myPIDAtune.SetLookbackSec(5);
+
+
+
     TimerFcToHMI.setInterval(500);
     TimerFcToHMI.expiredHandler(FcToHmi);
     TimerFcToHMI.start();
@@ -24,10 +72,11 @@ void setup()
 void loop()
 {
     mioForno.aggiorna();
-    temperaturaAttuale = mioForno.ottieniTemperatura();
-    TimerFcToHMI.run();
-    
-    
+    temperaturaAttuale = mioForno.ottieniTemperatura(); 
+    mioForno.impostaStato(ACCESO);      //accendo il forno
+    PidOutput = mioPID.run(temperaturaAttuale); //iterazione PID e prendo il suo output
+    mioForno.impostaPotenzaPercentuale(PidOutput); //l'uscita del PID è la regolazione del forno
+    TimerFcToHMI.run(); //diagnostica  
 }
 
 
