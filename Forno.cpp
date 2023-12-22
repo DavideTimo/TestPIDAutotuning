@@ -19,8 +19,8 @@ void Forno::aggiorna(){
     
 
     // Simulo il raffreddamento con una funzione logistica. Il raffreddamento è legato alla temperatura. Maggiore temperatura significa maggior raffreddamento
-    raffreddamento = 100.0 * exp(-tassoRaffreddamento * millis() / 1000.0)* (temperatura / 100.0);
-    
+    //raffreddamento = 100.0 * exp(-tassoRaffreddamento * millis() / 1000.0)* (temperatura / 100.0);
+    raffreddamento = 0;
     
     temperatura = riscaldamento - raffreddamento;
 
@@ -34,8 +34,12 @@ void Forno::aggiorna(){
     }
 }
 
-void Forno::impostaStato(statoForno nuovoStato){
-    stato = nuovoStato;
+void Forno::accendi(){
+    stato = ACCESO;
+}
+
+void Forno:: spegni(){
+    stato = SPENTO;
 }
 
 Forno::statoForno Forno::ottieniStato(){

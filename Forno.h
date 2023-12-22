@@ -15,13 +15,14 @@ class Forno {
     //attenzione. La struttura dell'enum va dichiarata prima di dichiarare una variabile di questo tipo, altrimenti giustamente impazzisce.
 
 
-    private:
+    public:
 
         enum statoForno {
             ACCESO,
             SPENTO
         };
 
+    private:
         double temperatura;
         double potenzaPercentuale;  //potenza del forno settata (in futuro dinamicamente dal PID)
         double riscaldamento;       //variazione temperatura causata dall'azione di riscaldamento
@@ -35,7 +36,8 @@ class Forno {
         void aggiorna();  //aggiorna la temperatura del forno
         double ottieniTemperatura();  //funzione che restituisce la temperatura attuale del forno
         statoForno ottieniStato(); //funzione che restituisce lo stato (acceso/spento) del forno
-        void impostaStato(statoForno nuovoStato); //funzione per settare lo stato (acceso/spento) del forno
+        void accendi(); //funzione per settare lo stato (acceso/spento) del forno
+        void spegni();
         void impostaPotenzaPercentuale(double potenza); //fuznione che imposta la potenza di riscaldamento del forno
         
 };

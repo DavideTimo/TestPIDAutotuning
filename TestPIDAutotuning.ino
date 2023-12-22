@@ -10,13 +10,13 @@ MillisTimer TimerFcToHMI = MillisTimer(500);  //creo un Timer che dura mezzo sec
 
 
 //creo oggetto forno
-Forno mioForno (0.01,0.002);
+Forno mioForno (0.1,0.002);
 
 double kp = 2;
 double ki = 5;
 double kd = 1;
 double setpoint = 150.0;
-double PidOutput = 0;
+double PidOutput = 0.0;
 //creo oggetto PID
 PID_v2 mioPID(kp,ki,kd,PID::Direct);
 
@@ -24,13 +24,13 @@ PID_v2 mioPID(kp,ki,kd,PID::Direct);
 double temperaturaAttuale; //temperatura attuale del forno
 
 
-PID_ATune myPIDAtune(@temperaturaAttuale, @PidOutput);
+PID_ATune myPIDAtune(&temperaturaAttuale, &PidOutput);
 
 
 //   ******* SETUP *******
 void setup()
 {
-    mioPID.start(temperaturaAttuale, PidOutput, setpoint);  // input, current uotput, setpoint
+    mioPID.Start(temperaturaAttuale, PidOutput, setpoint);  // input, current uotput, setpoint
 
     /*
     SetNoiseBand(double x); Questo parametro definisce la "banda di rumore" e rappresenta la massima variazione 
@@ -73,13 +73,14 @@ void loop()
 {
     mioForno.aggiorna();
     temperaturaAttuale = mioForno.ottieniTemperatura(); 
-    mioForno.impostaStato(ACCESO);      //accendo il forno
-    PidOutput = mioPID.run(temperaturaAttuale); //iterazione PID e prendo il suo output
+    mioForno.accendi();      //accendo il forno
+    PidOutput = mioPID.Run(temperaturaAttuale); //iterazione PID e prendo il suo output
     mioForno.impostaPotenzaPercentuale(PidOutput); //l'uscita del PID è la regolazione del forno
+    mioForno.aggiorna();
+
     TimerFcToHMI.run(); //diagnostica  
+    
 }
-
-
 
 
 /*
@@ -92,5 +93,6 @@ es. mt.mt.setTimeout(2000, myTimerFunction); //  reimpostare un nuovo intervallo
 */
 void FcToHmi(MillisTimer &mt){
     Serial.println("La temperatura del forno è " + String(temperaturaAttuale) + " °C");
+    Serial.println("L'uscita del PID è " + String(PidOutput));
     
 }

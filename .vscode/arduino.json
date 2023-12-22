@@ -1,4 +1,6 @@
 {
     "board": "arduino:avr:uno",
-    "sketch": "TestPIDAutotuning.ino"
+    "sketch": "TestPIDAutotuning.ino",
+    "port": "COM5",
+    "programmer": "avrisp"
 }

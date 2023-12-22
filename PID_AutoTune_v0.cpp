@@ -1,10 +1,11 @@
+/*
 #if ARDUINO >= 100
   #include "Arduino.h"
 #else
   #include "WProgram.h"
 #endif
-
-#include <PID_AutoTune_v0.h>
+*/
+#include "PID_AutoTune_v0.h"
 
 
 PID_ATune::PID_ATune(double* Input, double* Output)

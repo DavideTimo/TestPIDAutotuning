@@ -1,5 +1,6 @@
-#ifndef PID_AutoTune_v0
-#define PID_AutoTune_v0
+#ifndef PID_AutoTune_v0_H
+#define PID_AutoTune_v0_H
+#include "Arduino.h"
 #define LIBRARY_VERSION	0.0.1
 
 class PID_ATune
