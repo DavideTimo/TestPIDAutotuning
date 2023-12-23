@@ -11,6 +11,13 @@ La funzione aggiorna() si occupa di modificare la temperatura del forno.
 #define FORNO_H
 #include "Arduino.h"
 
+struct valoriDiagnostica {
+    double _potenza;
+    double _riscaldamento;
+    double _raffreddamento;
+    double _temperatura;
+};
+
 class Forno {
     //attenzione. La struttura dell'enum va dichiarata prima di dichiarare una variabile di questo tipo, altrimenti giustamente impazzisce.
 
@@ -21,7 +28,16 @@ class Forno {
             ACCESO,
             SPENTO
         };
-
+        
+        /*
+        struct valoriDiagnostica {
+            double _potenza;
+            double _riscaldamento;
+            double _raffreddamento;
+            double _temperatura;
+        };
+        */
+       
     private:
         double temperatura;
         double potenzaPercentuale;  //potenza del forno settata (in futuro dinamicamente dal PID)
@@ -39,7 +55,7 @@ class Forno {
         void accendi(); //funzione per settare lo stato (acceso/spento) del forno
         void spegni();
         void impostaPotenzaPercentuale(double potenza); //fuznione che imposta la potenza di riscaldamento del forno
-        
+        valoriDiagnostica getDiagnostica();
 };
 
 #endif  // FORNO_H

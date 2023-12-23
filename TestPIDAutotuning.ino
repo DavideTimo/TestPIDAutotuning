@@ -7,15 +7,15 @@
 MillisTimer TimerFcToHMI = MillisTimer(500);  //creo un Timer che dura mezzo secondo
 
 
-
-
 //creo oggetto forno
-Forno mioForno (0.1,0.002);
+Forno mioForno (0.001,0.002);
+
+
 
 double kp = 2;
 double ki = 5;
 double kd = 1;
-double setpoint = 150.0;
+double setpoint = 80.0;
 double PidOutput = 0.0;
 //creo oggetto PID
 PID_v2 mioPID(kp,ki,kd,PID::Direct);
@@ -84,15 +84,20 @@ void loop()
 
 
 /*
-Nel contesto di un temporizzatore, la funzione di gestione degli eventi 
-viene chiamata quando il timer scade. Passare un riferimento a un oggetto 
-MillisTimer come parametro fornisce alla funzione di gestione degli eventi 
+La funzione di gestione degli eventi gestita dal tipo MillisTimer
+viene chiamata quando il timer scade, e la funzione FcToHmi viene eseguita oneshot ogni N secondi. 
+Passare un riferimento a un oggetto 
+MillisTimer come parametro (&mt), fornisce alla funzione di gestione degli eventi 
 accesso all'oggetto timer stesso, consentendole di interagire con le sue 
 proprietà o di effettuare operazioni specifiche.
-es. mt.mt.setTimeout(2000, myTimerFunction); //  reimpostare un nuovo intervallo nel Timer
+es. mt.setTimeout(2000, myTimerFunction); //  reimpostare un nuovo intervallo nel Timer
 */
 void FcToHmi(MillisTimer &mt){
-    Serial.println("La temperatura del forno è " + String(temperaturaAttuale) + " °C");
-    Serial.println("L'uscita del PID è " + String(PidOutput));
-    
+    Serial.println("1 - La temperatura del forno è " + String(temperaturaAttuale) + " °C");
+    Serial.println("2 - L'uscita del PID è " + String(PidOutput));
+    valoriDiagnostica valoriRX = mioForno.getDiagnostica();
+    Serial.println("3 - Valori Diagnostica Forno: Potenza " + String(valoriRX._potenza));
+    Serial.println("4 - Valori Diagnostica Forno: Riscaldamento" + String(valoriRX._riscaldamento));
+    Serial.println("5 - Valori Diagnostica Forno: Raffreddamento " + String(valoriRX._raffreddamento));
+    Serial.println("6 - Valori Diagnostica Forno: Temperatura " + String(valoriRX._temperatura));
 }
