@@ -11,6 +11,7 @@ La funzione aggiorna() si occupa di modificare la temperatura del forno.
 #define FORNO_H
 #include "Arduino.h"
 
+// attenzione. Dichiaro questa struct fuori dalla classe, in modo che il tipo abbia lo scopo che sia utilizzabile sia all'interno del programma principale, che dentro la classe Forno.
 struct valoriDiagnostica {
     double _potenza;
     double _riscaldamento;
@@ -19,8 +20,7 @@ struct valoriDiagnostica {
 };
 
 class Forno {
-    //attenzione. La struttura dell'enum va dichiarata prima di dichiarare una variabile di questo tipo, altrimenti giustamente impazzisce.
-
+    //attenzione. L'enum va dichiarata prima di dichiarare una variabile di questo tipo, altrimenti giustamente impazzisce.
 
     public:
 
@@ -29,15 +29,6 @@ class Forno {
             SPENTO
         };
         
-        /*
-        struct valoriDiagnostica {
-            double _potenza;
-            double _riscaldamento;
-            double _raffreddamento;
-            double _temperatura;
-        };
-        */
-       
     private:
         double temperatura;
         double potenzaPercentuale;  //potenza del forno settata (in futuro dinamicamente dal PID)

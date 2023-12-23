@@ -95,9 +95,9 @@ void FcToHmi(MillisTimer &mt){
     Serial.println("1 - La temperatura del forno è " + String(temperaturaAttuale) + " °C");
     Serial.println("2 - L'uscita del PID è " + String(PidOutput));
     valoriDiagnostica valoriRX = mioForno.getDiagnostica();
-    Serial.println("3 - Valori Diagnostica Forno: Potenza " + String(valoriRX._potenza));
-    Serial.println("4 - Valori Diagnostica Forno: Riscaldamento" + String(valoriRX._riscaldamento));
-    Serial.println("5 - Valori Diagnostica Forno: Raffreddamento " + String(valoriRX._raffreddamento));
-    Serial.println("6 - Valori Diagnostica Forno: Temperatura " + String(valoriRX._temperatura));
+    Serial.println("3 - Valori Diagnostica Forno: Potenza - " + String(valoriRX._potenza));
+    Serial.println("4 - Valori Diagnostica Forno: Riscaldamento - " + String(valoriRX._riscaldamento));
+    Serial.println("5 - Valori Diagnostica Forno: Raffreddamento - " + String(valoriRX._raffreddamento));
+    Serial.println("6 - Valori Diagnostica Forno: Temperatura - " + String(valoriRX._temperatura));
     Serial.println("-------------------------------------------------------------");
 }
