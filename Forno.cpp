@@ -15,7 +15,7 @@ void Forno::aggiorna(){
         
         // Simulo un aumento di temperatura basato su una funzione logistica. Il riscaldamento è legato alla potenza impostata del forno.
         //riscaldamento = 100.0 * potenzaPercentuale * (1 - exp(-tassoRiscaldamento / 1000.0));
-        _riscaldamento = (_potenzaPercentuale * _tassoRiscaldamento)/10;
+        _riscaldamento = (_potenza * _tassoRiscaldamento)/10;
     }
     
 
@@ -39,12 +39,12 @@ void Forno::accendi(){ stato = ACCESO;}
 
 void Forno:: spegni(){ stato = SPENTO; }
 
-bool Forno::Stato(){ return stato==ACCESO; }
+bool Forno::stato(){ return stato==ACCESO; }
 
 
 void Forno::impostaPotenzaPercentuale(double potenza){
     // Clippo la potenza in modo che sia compresa tra 0 e 100
-    _potenzaPercentuale = potenza;
+    _potenza = potenza;
     
 }
 
@@ -56,7 +56,7 @@ double Forno::ottieniTemperatura() {
 valoriDiagnostica Forno::getDiagnostica(){
     // Funzione che restituisce una struct con dentro i valori di diagnostica del forno
     valoriDiagnostica valori;
-    valori.Potenza = _potenzaPercentuale;
+    valori.Potenza = _potenza;
     valori.Riscaldamento = _riscaldamento;
     valori.Raffreddamento = _raffreddamento;
     valori.Temperatura = _temperatura;
