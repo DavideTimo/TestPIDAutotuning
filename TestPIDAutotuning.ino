@@ -4,27 +4,26 @@
 #include "PID_AutoTune_v0.h"
 
 
-MillisTimer TimerFcToHMI = MillisTimer(500);  //creo un Timer che dura mezzo secondo
+MillisTimer TimerFcToHMI = MillisTimer(500);  //creo un Timer che dura mezzo secondo. Per limitare il carico di lavoro del processore eseguo la diagnostica ogni 2sec e non ad ogni ciclo
 
 
 //creo oggetto forno
-Forno mioForno (0.001,0.002);
+Forno mioForno (0.001,0.002);  // istanzio oggetto Forno
 
+double kp = 2; // valore proporzionale PID
+double ki = 5; // valore integrale PID
+double kd = 1;  // valore derivativo PID
+double setpoint = 80.0;  // setpoint del PID
+double PidOutput = 0.0;  // output del PID
 
-
-double kp = 2;
-double ki = 5;
-double kd = 1;
-double setpoint = 80.0;
-double PidOutput = 0.0;
 //creo oggetto PID
-PID_v2 mioPID(kp,ki,kd,PID::Direct);
+PID_v2 mioPID(kp,ki,kd,PID::Direct); // istanzio oggetto PID
 
 //variabili
 double temperaturaAttuale; //temperatura attuale del forno
 
 
-PID_ATune myPIDAtune(&temperaturaAttuale, &PidOutput);
+PID_ATune myPIDAtune(&temperaturaAttuale, &PidOutput);  // istanzio oggetto PIDTune, dando come argomenti feedbackIn e output del PID da tunnare
 
 
 //   ******* SETUP *******
@@ -100,4 +99,5 @@ void FcToHmi(MillisTimer &mt){
     Serial.println("4 - Valori Diagnostica Forno: Riscaldamento" + String(valoriRX._riscaldamento));
     Serial.println("5 - Valori Diagnostica Forno: Raffreddamento " + String(valoriRX._raffreddamento));
     Serial.println("6 - Valori Diagnostica Forno: Temperatura " + String(valoriRX._temperatura));
+    Serial.println("-------------------------------------------------------------");
 }

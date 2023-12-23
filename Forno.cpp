@@ -15,13 +15,13 @@ void Forno::aggiorna(){
         
         // Simulo un aumento di temperatura basato su una funzione logistica. Il riscaldamento è legato alla potenza impostata del forno.
         //riscaldamento = 100.0 * potenzaPercentuale * (1 - exp(-tassoRiscaldamento / 1000.0));
-        riscaldamento = potenzaPercentuale * tassoRiscaldamento;
+        riscaldamento = (potenzaPercentuale * tassoRiscaldamento)/10;
     }
     
 
     // Simulo il raffreddamento con una funzione logistica. Il raffreddamento è legato alla temperatura. Maggiore temperatura significa maggior raffreddamento
     //raffreddamento = 100.0 * exp(-tassoRaffreddamento * millis() / 1000.0)* (temperatura / 100.0);
-    raffreddamento = tassoRaffreddamento * temperatura / 3;
+    raffreddamento = (tassoRaffreddamento * temperatura / 3)/10;
     
     temperatura = temperatura + riscaldamento - raffreddamento;
 
@@ -50,7 +50,7 @@ Forno::statoForno Forno::ottieniStato(){
 
 void Forno::impostaPotenzaPercentuale(double potenza){
     // Clippo la potenza in modo che sia compresa tra 0 e 100
-    potenzaPercentuale = fmin(fmax(potenza, 0.0), 100.0) / 100.0;
+    potenzaPercentuale = potenza;
     
 }
 
