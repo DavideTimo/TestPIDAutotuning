@@ -40,7 +40,7 @@ void Forno:: spegni() { _stato = SPENTO; }
 bool Forno::stato() { return _stato==ACCESO; }
 
 
-void Forno::impostaPotenzaPercentuale(double potenza){
+void Forno::impostaPotenza(double potenza){
     // Clippo la potenza in modo che sia compresa tra 0 e 100
     _potenza = potenza;
     

@@ -5,16 +5,16 @@
 
 
 
-MillisTimer TimerFcToHMI = MillisTimer(500);  //creo un Timer che dura mezzo secondo. Per limitare il carico di lavoro del processore eseguo la diagnostica ogni 2sec e non ad ogni ciclo
+MillisTimer TimerFcToHMI = MillisTimer(1000);  //creo un Timer che dura mezzo secondo. Per limitare il carico di lavoro del processore eseguo la diagnostica ogni 2sec e non ad ogni ciclo
 
 
 //creo oggetto forno
-Forno mioForno (0.001,0.002);  // istanzio oggetto Forno
+Forno mioForno (0.003,0.006);  // istanzio oggetto Forno
 
-double kp = 2;           // valore proporzionale PID
+double kp = 1;           // valore proporzionale PID
 double ki = 5;           // valore integrale PID
-double kd = 1;           // valore derivativo PID
-double setpoint = 80.0;  // setpoint del PID
+double kd = 2;           // valore derivativo PID
+double setpoint = 50.0;  // setpoint del PID
 double PidOutput = 0.0;  // output del PID
 
 //creo oggetto PID
@@ -31,10 +31,17 @@ double temperaturaAttuale; //temperatura attuale del forno
 PIDAutotuner tuner = PIDAutotuner();
 long loopInterval = 100000;
 double tunerOutput = 0; //dichiaro variabile di uscita del tuner 
+float tuner_kp;
+float tuner_ki;
+float tuner_kd;
 
 //   ******* SETUP *******
 void setup()
 {
+    // *** COMUNICAZIONE SERIALE ***
+    // Inizializza la comunicazione seriale a 9600 baud
+    Serial.begin(9600);
+
     //setup *** PID ***
     mioPID.Start(temperaturaAttuale, PidOutput, setpoint);  // input, current uotput, setpoint
     
@@ -75,11 +82,11 @@ void setup()
     Deve essere richiamato con il tempo corrente in microsecondi
     */
     tuner.startTuningLoop(micros());
-
+    Serial.println("Inzizio ciclo di tuning");
     // Eseguire un ciclo finché tuner.isFinished() non restituisce true
     long microseconds;
     while (!tuner.isFinished()) {
-
+        Serial.println("Ciclo di Tuning");
         // Questo loop deve funzionare alla stessa velocità del loop di controllo PID da regolare.
         long prevMicroseconds = microseconds;
         microseconds = micros();
@@ -89,17 +96,15 @@ void setup()
         mioForno.accendi();
         mioForno.aggiorna();                                    //aggiorna temperatura del forno
         temperaturaAttuale = mioForno.ottieniTemperatura();     //leggo la temperatura attuale del forno
-
+        Serial.println("Ciclo di Tuning: temperatura attuale forno: " + String(temperaturaAttuale));
         // Chiamare tunePID() con il valore di ingresso e il tempo corrente in microsecondi
         tunerOutput = tuner.tunePID(temperaturaAttuale, microseconds);
-
+        Serial.println("Ciclo di Tuning: potenza attuale forno: " + String(tunerOutput));
         /* 
         Impostare l'uscita - tunePid() restituirà valori compresi nell'intervallo configurato da
-        da setOutputRange(). Non modificate il valore o i risultati del tuning saranno
-        non saranno corretti.
+        da setOutputRange(). 
         */
-        //doSomethingToSetOutput(output);
-        mioForno.impostaPotenzaPercentuale(tunerOutput);
+        mioForno.impostaPotenza(tunerOutput);
 
         // Questo loop deve funzionare alla stessa velocità del loop di controllo PID da regolare.
         while (micros() - microseconds < loopInterval) delayMicroseconds(1);
@@ -110,19 +115,17 @@ void setup()
     tunerOutput = 0;
 
     // Ottenere i guadagni PID - impostare i guadagni del controllore PID su questi valori
-    double kp = tuner.getKp();
-    double ki = tuner.getKi();
-    double kd = tuner.getKd();
-
+    tuner_kp = tuner.getKp();
+    tuner_ki = tuner.getKi();
+    tuner_kd = tuner.getKd();
+    Serial.println("Ciclo di Tuning: guadagno proporzionale: " + String(tuner_kp,2) + " - guadagno integrale: " + String(tuner_ki,2) + " - guadagno derivativo: " + String(tuner_kd,2));
     //  *** TIMER ***
     //Congigurazione del TIMER per richiamare la fc di diagnostica
-    TimerFcToHMI.setInterval(500);
+    TimerFcToHMI.setInterval(1000);
     TimerFcToHMI.expiredHandler(FcToHmi);
     TimerFcToHMI.start();
 
-    // *** COMUNICAZIONE SERIALE ***
-    // Inizializza la comunicazione seriale a 9600 baud
-    Serial.begin(9600);
+ 
 
     // CANCELLATO
     /*
@@ -150,21 +153,20 @@ void setup()
     
     myPIDAtune.SetLookbackSec(5);
     */
-
-
-
+   Serial.println("Setup completato");
 }
 
 
 //   ******* LOOP *******
 void loop()
 {
+    
     if (mioForno.stato())                                         //se il forno è acceso
     {
         mioForno.aggiorna();                                    //aggiorna temperatura del forno
         temperaturaAttuale = mioForno.ottieniTemperatura();     //leggo la temperatura attuale del forno
         PidOutput = mioPID.Run(temperaturaAttuale);             //iterazione PID e prendo il suo output
-        mioForno.impostaPotenzaPercentuale(PidOutput);          //l'uscita del PID è la regolazione del forno
+        mioForno.impostaPotenza(PidOutput);          //l'uscita del PID è la regolazione del forno
     }
     else
     {
@@ -193,8 +195,8 @@ void FcToHmi(MillisTimer &mt){
     Serial.println("4 - Valori Diagnostica Forno: Riscaldamento - " + String(valoriRX.Riscaldamento));
     Serial.println("5 - Valori Diagnostica Forno: Raffreddamento - " + String(valoriRX.Raffreddamento));
     Serial.println("6 - Valori Diagnostica Forno: Temperatura - " + String(valoriRX.Temperatura));
-    Serial.println("7 - Il guadagno proporzionale del PID vale : " + String(kp));
-    Serial.println("7 - Il guadagno integrale del PID vale : " + String(ki));
-    Serial.println("7 - Il guadagno derivativo del PID vale : " + String(kd));
+    Serial.println("7a - Il guadagno proporzionale del PID vale : " + String(kp));
+    Serial.println("7b - Il guadagno integrale del PID vale : " + String(ki));
+    Serial.println("7c - Il guadagno derivativo del PID vale : " + String(kd));
     Serial.println("-------------------------------------------------------------");
 }

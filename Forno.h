@@ -44,7 +44,7 @@ class Forno {
         bool stato();                    //funzione che restituisce true se lo stato del forno è acceso
         void accendi();                  //funzione per accendere (acceso/spento) il forno
         void spegni();                   //funzione per spegnere (acceso/spento) il forno
-        void impostaPotenzaPercentuale(double potenza); //funzione che imposta la potenza di riscaldamento del forno
+        void impostaPotenza(double potenza); //funzione che imposta la potenza di riscaldamento del forno
         valoriDiagnostica getDiagnostica();             //funzione che ritorna la struct con dentro i valori di diagnostica
 };
 
