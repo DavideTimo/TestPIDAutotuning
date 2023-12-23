@@ -13,10 +13,10 @@ La funzione aggiorna() si occupa di modificare la temperatura del forno.
 
 // attenzione. Dichiaro questa struct fuori dalla classe, in modo che il tipo abbia lo scopo che sia utilizzabile sia all'interno del programma principale, che dentro la classe Forno.
 struct valoriDiagnostica {
-    double _potenza;
-    double _riscaldamento;
-    double _raffreddamento;
-    double _temperatura;
+    double Potenza;
+    double Riscaldamento;
+    double Raffreddamento;
+    double Temperatura;
 };
 
 class Forno {
@@ -30,19 +30,19 @@ class Forno {
         };
         
     private:
-        double temperatura;
-        double potenzaPercentuale;  //potenza del forno settata (in futuro dinamicamente dal PID)
-        double riscaldamento;       //variazione temperatura causata dall'azione di riscaldamento
-        double raffreddamento;      // variazione temperatura causata dall'azione di raffreddamento
-        double tassoRiscaldamento;  //una caratteristica del forno, un k che definisce il tasso di riscaldamento. 
-        double tassoRaffreddamento; //una caratteristica del forno, un k che definisce il tasso di raffreddamento. 
+        double _temperatura;         //temperatura attuale del forno
+        double _potenzaPercentuale;  //potenza del forno settata (in futuro dinamicamente dal PID)
+        double _riscaldamento;       //variazione temperatura causata dall'azione di riscaldamento
+        double _raffreddamento;      // variazione temperatura causata dall'azione di raffreddamento
+        double _tassoRiscaldamento;  //una caratteristica del forno, un k che definisce il tasso di riscaldamento. 
+        double _tassoRaffreddamento; //una caratteristica del forno, un k che definisce il tasso di raffreddamento. 
         statoForno stato;           // enum, acceso o spento
 
     public:
         Forno( double tassoRiscaldamento, double tassoRaffreddamento );  //costruttore
         void aggiorna();  //aggiorna la temperatura del forno
         double ottieniTemperatura();  //funzione che restituisce la temperatura attuale del forno
-        statoForno ottieniStato(); //funzione che restituisce lo stato (acceso/spento) del forno
+        bool Stato(); //funzione che restituisce true se lo stato del forno è acceso
         void accendi(); //funzione per settare lo stato (acceso/spento) del forno
         void spegni();
         void impostaPotenzaPercentuale(double potenza); //fuznione che imposta la potenza di riscaldamento del forno
