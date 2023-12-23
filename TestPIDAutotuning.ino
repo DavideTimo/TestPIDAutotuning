@@ -3,6 +3,7 @@
 #include "PID_v2.h"
 #include "pidautotuner.h"
 
+bool primoCliclo = true;
 
 
 MillisTimer TimerFcToHMI = MillisTimer(1000);  //creo un Timer che dura mezzo secondo. Per limitare il carico di lavoro del processore eseguo la diagnostica ogni 2sec e non ad ogni ciclo
@@ -10,11 +11,12 @@ MillisTimer TimerFcToHMI = MillisTimer(1000);  //creo un Timer che dura mezzo se
 
 //creo oggetto forno
 Forno mioForno (0.003,0.006);  // istanzio oggetto Forno
+Forno mioForno2 (0.003,0.006);  // istanzio oggetto Forno
 
 double kp = 1;           // valore proporzionale PID
 double ki = 5;           // valore integrale PID
 double kd = 2;           // valore derivativo PID
-double setpoint = 50.0;  // setpoint del PID
+double setpoint = 35.0;  // setpoint del PID
 double PidOutput = 0.0;  // output del PID
 
 //creo oggetto PID
@@ -43,7 +45,7 @@ void setup()
     Serial.begin(9600);
 
     //setup *** PID ***
-    mioPID.Start(temperaturaAttuale, PidOutput, setpoint);  // input, current uotput, setpoint
+    
     
     
     //setup *** AUTOTUNER ***
@@ -115,16 +117,25 @@ void setup()
     tunerOutput = 0;
 
     // Ottenere i guadagni PID - impostare i guadagni del controllore PID su questi valori
-    tuner_kp = tuner.getKp();
-    tuner_ki = tuner.getKi();
-    tuner_kd = tuner.getKd();
+    tuner_kp = tuner.getKp()/1000;
+    tuner_ki = tuner.getKi()/1000;
+    tuner_kd = tuner.getKd()/1000;
     Serial.println("Ciclo di Tuning: guadagno proporzionale: " + String(tuner_kp,2) + " - guadagno integrale: " + String(tuner_ki,2) + " - guadagno derivativo: " + String(tuner_kd,2));
+    
+    mioForno.resetForno();                  //resetto la temperatura del forno
+    kp = static_cast<double>(tuner_kp);     //assegno i nuovi guadagni al PID. Non so perchè ottengo dei guadagni altissimi, allora provo a dividere per 100. Conversione da Float a Double.
+    ki = static_cast<double>(tuner_ki);     //assegno i nuovi guadagni al PID. Non so perchè ottengo dei guadagni altissimi, allora provo a dividere per 100. Conversione da Float a Double.
+    kd = static_cast<double>(tuner_kd);     //assegno i nuovi guadagni al PID. Non so perchè ottengo dei guadagni altissimi, allora provo a dividere per 100. Conversione da Float a Double.
+    mioPID.SetTunings(kp,ki,kd);            //assegno i nuovi guadagni al PID. Non so perchè ottengo dei guadagni altissimi, allora provo a dividere per 100
+
+
+
+
     //  *** TIMER ***
     //Congigurazione del TIMER per richiamare la fc di diagnostica
     TimerFcToHMI.setInterval(1000);
     TimerFcToHMI.expiredHandler(FcToHmi);
     TimerFcToHMI.start();
-
  
 
     // CANCELLATO
@@ -160,17 +171,22 @@ void setup()
 //   ******* LOOP *******
 void loop()
 {
-    
-    if (mioForno.stato())                                         //se il forno è acceso
+    if (primoCliclo)
     {
-        mioForno.aggiorna();                                    //aggiorna temperatura del forno
-        temperaturaAttuale = mioForno.ottieniTemperatura();     //leggo la temperatura attuale del forno
+        mioPID.Start(temperaturaAttuale, PidOutput, setpoint);  // input, current uotput, setpoint
+        primoCliclo = false;
+    }
+    
+    if (mioForno2.stato())                                       //se il forno è acceso
+    {
+        temperaturaAttuale = mioForno2.ottieniTemperatura();     //leggo la temperatura attuale del forno
         PidOutput = mioPID.Run(temperaturaAttuale);             //iterazione PID e prendo il suo output
-        mioForno.impostaPotenza(PidOutput);          //l'uscita del PID è la regolazione del forno
+        mioForno2.impostaPotenza(PidOutput);                     //l'uscita del PID è la regolazione del forno
+        mioForno2.aggiorna();                                    //aggiorna temperatura del forno
     }
     else
     {
-        mioForno.accendi();     //accendo il forno
+        mioForno2.accendi();     //accendo il forno
     }
 
     TimerFcToHMI.run();         //diagnostica  
@@ -190,11 +206,11 @@ es. mt.setTimeout(2000, myTimerFunction); //  reimpostare un nuovo intervallo ne
 void FcToHmi(MillisTimer &mt){
     Serial.println("1 - La temperatura del forno è " + String(temperaturaAttuale) + " °C");
     Serial.println("2 - L'uscita del PID è " + String(PidOutput));
-    valoriDiagnostica valoriRX = mioForno.getDiagnostica();
-    Serial.println("3 - Valori Diagnostica Forno: Potenza - " + String(valoriRX.Potenza));
-    Serial.println("4 - Valori Diagnostica Forno: Riscaldamento - " + String(valoriRX.Riscaldamento));
-    Serial.println("5 - Valori Diagnostica Forno: Raffreddamento - " + String(valoriRX.Raffreddamento));
-    Serial.println("6 - Valori Diagnostica Forno: Temperatura - " + String(valoriRX.Temperatura));
+    valoriDiagnostica valoriRX = mioForno2.getDiagnostica();
+    Serial.println("3 - Valori Diagnostica Forno - Potenza: " + String(valoriRX.Potenza));
+    Serial.println("4 - Valori Diagnostica Forno - Riscaldamento: " + String(valoriRX.Riscaldamento));
+    Serial.println("5 - Valori Diagnostica Forno - Raffreddamento: " + String(valoriRX.Raffreddamento));
+    Serial.println("6 - Valori Diagnostica Forno - Temperatura: " + String(valoriRX.Temperatura));
     Serial.println("7a - Il guadagno proporzionale del PID vale : " + String(kp));
     Serial.println("7b - Il guadagno integrale del PID vale : " + String(ki));
     Serial.println("7c - Il guadagno derivativo del PID vale : " + String(kd));

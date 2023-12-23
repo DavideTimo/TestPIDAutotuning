@@ -46,6 +46,7 @@ class Forno {
         void spegni();                   //funzione per spegnere (acceso/spento) il forno
         void impostaPotenza(double potenza); //funzione che imposta la potenza di riscaldamento del forno
         valoriDiagnostica getDiagnostica();             //funzione che ritorna la struct con dentro i valori di diagnostica
+        void resetForno();                // resetta la temperatura del forno
 };
 
 #endif  // FORNO_H

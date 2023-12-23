@@ -35,7 +35,9 @@ void Forno::aggiorna(){
 
 void Forno::accendi() { _stato = ACCESO; }
 
-void Forno:: spegni() { _stato = SPENTO; }
+void Forno::spegni() { _stato = SPENTO; }
+
+void Forno::resetForno() { _temperatura = 22.0; }
 
 bool Forno::stato() { return _stato==ACCESO; }
 
