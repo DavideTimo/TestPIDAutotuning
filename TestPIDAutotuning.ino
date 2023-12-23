@@ -1,7 +1,8 @@
 #include "forno.h"
 #include "MillisTimer.h"
 #include "PID_v2.h"
-#include "PID_AutoTune_v0.h"
+#include "pidautotuner.h"
+
 
 
 MillisTimer TimerFcToHMI = MillisTimer(500);  //creo un Timer che dura mezzo secondo. Per limitare il carico di lavoro del processore eseguo la diagnostica ogni 2sec e non ad ogni ciclo
@@ -23,61 +24,154 @@ PID_v2 mioPID(kp,ki,kd,PID::Direct); // istanzio oggetto PID
 double temperaturaAttuale; //temperatura attuale del forno
 
 
-PID_ATune myPIDAtune(&temperaturaAttuale, &PidOutput);  // istanzio oggetto PIDTune, dando come argomenti feedbackIn e output del PID da tunnare
 
+//Autotuner 
+// PID_ATune myPIDAtune(&temperaturaAttuale, &PidOutput);  // istanzio oggetto PIDTune, dando come argomenti feedbackIn e output del PID da tunnare  <-- (1)
+
+PIDAutotuner tuner = PIDAutotuner();
+long loopInterval = 100000;
+double tunerOutput = 0; //dichiaro variabile di uscita del tuner 
 
 //   ******* SETUP *******
 void setup()
 {
+    //setup *** PID ***
     mioPID.Start(temperaturaAttuale, PidOutput, setpoint);  // input, current uotput, setpoint
+    
+    
+    //setup *** AUTOTUNER ***
+    PIDAutotuner tuner = PIDAutotuner();
 
+    /* 
+    Imposto il valore target su cui sintonizzarsi
+    Dipende dal tipo di regolazione che si sta effettuando. Dovrebbe essere impostato su un valore all'interno
+    dell'intervallo abituale del setpoint. Per i sistemi a bassa inerzia, i valori all'estremo inferiore di questo intervallo.
+    */
+    tuner.setTargetInputValue(setpoint);
+
+    /* 
+    Imposto l'intervallo del loop in microsecondi
+    Deve essere uguale all'intervallo di funzionamento del loop di controllo PID.
+    Il PID che uso di default ha un intervallo di 100 millisecondi, quindi 100.000microsecondi
+    */
+    tuner.setLoopInterval(loopInterval);
+
+    /* 
+    Imposto l'intervallo di uscita
+    Questi sono i valori di uscita minimi e massimi possibili di ciò che si usa per controllare il sistema (Arduino analogWrite, ad esempio, è 0-255).
+    per controllare il sistema (Arduino analogWrite, ad esempio, è 0-255).
+    */
+    tuner.setOutputRange(0, 255);
+
+    /* 
+    Impostare la modalità di sintonizzazione Ziegler-Nichols
+    Impostare PIDAutotuner::ZNModeBasicPID, PIDAutotuner::ZNModeLessOvershoot o PIDAutotuner::ZNModeNoOvershoot. 
+    L'impostazione predefinita è ZNModeNoOvershoot, in quanto è l'opzione più sicura.
+    */
+    tuner.setZNMode(PIDAutotuner::ZNModeBasicPID);
+
+    /* 
+    Deve essere richiamato immediatamente prima del ciclo di tuning.
+    Deve essere richiamato con il tempo corrente in microsecondi
+    */
+    tuner.startTuningLoop(micros());
+
+    // Eseguire un ciclo finché tuner.isFinished() non restituisce true
+    long microseconds;
+    while (!tuner.isFinished()) {
+
+        // Questo loop deve funzionare alla stessa velocità del loop di controllo PID da regolare.
+        long prevMicroseconds = microseconds;
+        microseconds = micros();
+
+        // Ottenere qui il valore di ingresso (temperatura, posizione dell'encoder, velocità, ecc.)
+        //double input = doSomethingToGetInput();
+        mioForno.accendi();
+        mioForno.aggiorna();                                    //aggiorna temperatura del forno
+        temperaturaAttuale = mioForno.ottieniTemperatura();     //leggo la temperatura attuale del forno
+
+        // Chiamare tunePID() con il valore di ingresso e il tempo corrente in microsecondi
+        tunerOutput = tuner.tunePID(temperaturaAttuale, microseconds);
+
+        /* 
+        Impostare l'uscita - tunePid() restituirà valori compresi nell'intervallo configurato da
+        da setOutputRange(). Non modificate il valore o i risultati del tuning saranno
+        non saranno corretti.
+        */
+        //doSomethingToSetOutput(output);
+        mioForno.impostaPotenzaPercentuale(tunerOutput);
+
+        // Questo loop deve funzionare alla stessa velocità del loop di controllo PID da regolare.
+        while (micros() - microseconds < loopInterval) delayMicroseconds(1);
+    }
+
+    // Disattivare l'uscita in questo punto.
+    //doSomethingToSetOutput(0);
+    tunerOutput = 0;
+
+    // Ottenere i guadagni PID - impostare i guadagni del controllore PID su questi valori
+    double kp = tuner.getKp();
+    double ki = tuner.getKi();
+    double kd = tuner.getKd();
+
+    //  *** TIMER ***
+    //Congigurazione del TIMER per richiamare la fc di diagnostica
+    TimerFcToHMI.setInterval(500);
+    TimerFcToHMI.expiredHandler(FcToHmi);
+    TimerFcToHMI.start();
+
+    // *** COMUNICAZIONE SERIALE ***
+    // Inizializza la comunicazione seriale a 9600 baud
+    Serial.begin(9600);
+
+    // CANCELLATO
     /*
     SetNoiseBand(double x); Questo parametro definisce la "banda di rumore" e rappresenta la massima variazione 
     che può essere tollerata prima che l'algoritmo di autotuning consideri il sistema stabile. 
     Se il segnale di ingresso varia meno della banda di rumore, viene considerato come rumore 
     di misura e ignorato. Questo parametro aiuta a ridurre l'effetto del rumore sulla stima 
     del modello del sistema.
-    */
+    
     myPIDAtune.SetNoiseBand(1);
 
-    /*
+    
     SetOutputStep(double x). Questo parametro specifica la dimensione del passo (step) che verrà utilizzato per rilevare 
     la risposta in uscita del sistema durante l'autotuning. Un passo più grande può accelerare 
     il processo di autotuning, ma potrebbe influenzare la stabilità del sistema. 
     Un valore più piccolo può rendere l'autotuning più lento, ma può essere più preciso.
-    */
+    
     myPIDAtune.SetOutputStep(1);
 
-    /*
+    
     Questo parametro definisce il periodo di tempo (in secondi) su cui l'algoritmo di autotuning 
     guarda indietro per analizzare la risposta in uscita del sistema. Un periodo di guardia più 
     lungo può catturare meglio le dinamiche a lungo termine del sistema, ma potrebbe rendere 
     l'autotuning più lento.
-    */
+    
     myPIDAtune.SetLookbackSec(5);
+    */
 
 
 
-    TimerFcToHMI.setInterval(500);
-    TimerFcToHMI.expiredHandler(FcToHmi);
-    TimerFcToHMI.start();
-
-    // Inizializza la comunicazione seriale a 9600 baud
-    Serial.begin(9600);
 }
 
 
 //   ******* LOOP *******
 void loop()
 {
-    mioForno.aggiorna();
-    temperaturaAttuale = mioForno.ottieniTemperatura(); 
-    mioForno.accendi();      //accendo il forno
-    PidOutput = mioPID.Run(temperaturaAttuale); //iterazione PID e prendo il suo output
-    mioForno.impostaPotenzaPercentuale(PidOutput); //l'uscita del PID è la regolazione del forno
-    mioForno.aggiorna();
+    if (mioForno.stato())                                         //se il forno è acceso
+    {
+        mioForno.aggiorna();                                    //aggiorna temperatura del forno
+        temperaturaAttuale = mioForno.ottieniTemperatura();     //leggo la temperatura attuale del forno
+        PidOutput = mioPID.Run(temperaturaAttuale);             //iterazione PID e prendo il suo output
+        mioForno.impostaPotenzaPercentuale(PidOutput);          //l'uscita del PID è la regolazione del forno
+    }
+    else
+    {
+        mioForno.accendi();     //accendo il forno
+    }
 
-    TimerFcToHMI.run(); //diagnostica  
+    TimerFcToHMI.run();         //diagnostica  
     
 }
 
@@ -99,5 +193,8 @@ void FcToHmi(MillisTimer &mt){
     Serial.println("4 - Valori Diagnostica Forno: Riscaldamento - " + String(valoriRX.Riscaldamento));
     Serial.println("5 - Valori Diagnostica Forno: Raffreddamento - " + String(valoriRX.Raffreddamento));
     Serial.println("6 - Valori Diagnostica Forno: Temperatura - " + String(valoriRX.Temperatura));
+    Serial.println("7 - Il guadagno proporzionale del PID vale : " + String(kp));
+    Serial.println("7 - Il guadagno integrale del PID vale : " + String(ki));
+    Serial.println("7 - Il guadagno derivativo del PID vale : " + String(kd));
     Serial.println("-------------------------------------------------------------");
 }
