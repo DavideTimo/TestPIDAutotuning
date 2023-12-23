@@ -31,22 +31,22 @@ class Forno {
         
     private:
         double _temperatura;         //temperatura attuale del forno
-        double _potenza;  //potenza del forno settata (in futuro dinamicamente dal PID)
+        double _potenza;             //potenza del forno settata (in futuro dinamicamente dal PID)
         double _riscaldamento;       //variazione temperatura causata dall'azione di riscaldamento
         double _raffreddamento;      // variazione temperatura causata dall'azione di raffreddamento
         double _tassoRiscaldamento;  //una caratteristica del forno, un k che definisce il tasso di riscaldamento. 
         double _tassoRaffreddamento; //una caratteristica del forno, un k che definisce il tasso di raffreddamento. 
-        statoForno stato;           // enum, acceso o spento
+        statoForno _stato;            // enum, acceso o spento
 
     public:
         Forno( double tassoRiscaldamento, double tassoRaffreddamento );  //costruttore
-        void aggiorna();  //aggiorna la temperatura del forno
-        double ottieniTemperatura();  //funzione che restituisce la temperatura attuale del forno
-        bool stato(); //funzione che restituisce true se lo stato del forno è acceso
-        void accendi(); //funzione per settare lo stato (acceso/spento) del forno
-        void spegni();
-        void impostaPotenzaPercentuale(double potenza); //fuznione che imposta la potenza di riscaldamento del forno
-        valoriDiagnostica getDiagnostica();
+        void aggiorna();                 //aggiorna la temperatura del forno
+        double ottieniTemperatura();     //funzione che restituisce la temperatura attuale del forno
+        bool stato();                    //funzione che restituisce true se lo stato del forno è acceso
+        void accendi();                  //funzione per accendere (acceso/spento) il forno
+        void spegni();                   //funzione per spegnere (acceso/spento) il forno
+        void impostaPotenzaPercentuale(double potenza); //funzione che imposta la potenza di riscaldamento del forno
+        valoriDiagnostica getDiagnostica();             //funzione che ritorna la struct con dentro i valori di diagnostica
 };
 
 #endif  // FORNO_H

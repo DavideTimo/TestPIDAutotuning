@@ -4,25 +4,23 @@
 // Costruttore
 Forno::Forno(double tassoRiscaldamento, double tassoRaffreddamento)
     : _temperatura(0.0), _tassoRiscaldamento(tassoRiscaldamento), _tassoRaffreddamento(tassoRaffreddamento) {
-        stato = SPENTO;
+        _stato = SPENTO;
     }
 
 
 void Forno::aggiorna(){
 
-    if (stato == ACCESO)
+    if (_stato == ACCESO)
     {
-        
         // Simulo un aumento di temperatura basato su una funzione logistica. Il riscaldamento è legato alla potenza impostata del forno.
-        //riscaldamento = 100.0 * potenzaPercentuale * (1 - exp(-tassoRiscaldamento / 1000.0));
         _riscaldamento = (_potenza * _tassoRiscaldamento)/10;
     }
     
 
     // Simulo il raffreddamento con una funzione logistica. Il raffreddamento è legato alla temperatura. Maggiore temperatura significa maggior raffreddamento
-    //raffreddamento = 100.0 * exp(-tassoRaffreddamento * millis() / 1000.0)* (temperatura / 100.0);
     _raffreddamento = (_tassoRaffreddamento * _temperatura / 3)/10;
     
+    //aggiorno la temperatura
     _temperatura = _temperatura + _riscaldamento - _raffreddamento;
 
     //clippo valori di uscita tra 20°C e 300°C
@@ -35,11 +33,11 @@ void Forno::aggiorna(){
     }
 }
 
-void Forno::accendi(){ stato = ACCESO;}
+void Forno::accendi() { _stato = ACCESO; }
 
-void Forno:: spegni(){ stato = SPENTO; }
+void Forno:: spegni() { _stato = SPENTO; }
 
-bool Forno::stato(){ return stato==ACCESO; }
+bool Forno::stato() { return _stato==ACCESO; }
 
 
 void Forno::impostaPotenzaPercentuale(double potenza){

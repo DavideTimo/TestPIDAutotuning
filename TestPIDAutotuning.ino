@@ -64,8 +64,8 @@ void setup()
 
     // Inizializza la comunicazione seriale a 9600 baud
     Serial.begin(9600);
-
 }
+
 
 //   ******* LOOP *******
 void loop()
