@@ -10,9 +10,9 @@ MillisTimer TimerFcToHMI = MillisTimer(500);  //creo un Timer che dura mezzo sec
 //creo oggetto forno
 Forno mioForno (0.001,0.002);  // istanzio oggetto Forno
 
-double kp = 2; // valore proporzionale PID
-double ki = 5; // valore integrale PID
-double kd = 1;  // valore derivativo PID
+double kp = 2;           // valore proporzionale PID
+double ki = 5;           // valore integrale PID
+double kd = 1;           // valore derivativo PID
 double setpoint = 80.0;  // setpoint del PID
 double PidOutput = 0.0;  // output del PID
 

@@ -23,19 +23,18 @@ class Forno {
     //attenzione. L'enum va dichiarata prima di dichiarare una variabile di questo tipo, altrimenti giustamente impazzisce.
 
     public:
-
         enum statoForno {
             ACCESO,
             SPENTO
         };
         
     private:
-        double _temperatura;         //temperatura attuale del forno
-        double _potenza;             //potenza del forno settata (in futuro dinamicamente dal PID)
-        double _riscaldamento;       //variazione temperatura causata dall'azione di riscaldamento
-        double _raffreddamento;      // variazione temperatura causata dall'azione di raffreddamento
-        double _tassoRiscaldamento;  //una caratteristica del forno, un k che definisce il tasso di riscaldamento. 
-        double _tassoRaffreddamento; //una caratteristica del forno, un k che definisce il tasso di raffreddamento. 
+        double _temperatura;          //temperatura attuale del forno
+        double _potenza;              //potenza del forno settata (in futuro dinamicamente dal PID)
+        double _riscaldamento;        //variazione temperatura causata dall'azione di riscaldamento
+        double _raffreddamento;       // variazione temperatura causata dall'azione di raffreddamento
+        double _tassoRiscaldamento;   //una caratteristica del forno, un k che definisce il tasso di riscaldamento. 
+        double _tassoRaffreddamento;  //una caratteristica del forno, un k che definisce il tasso di raffreddamento. 
         statoForno _stato;            // enum, acceso o spento
 
     public:
